@@ -104,3 +104,15 @@ The retrieved data this time came back as a list of Match ID's. I've altered the
     "NA1_(numbers)",  
     "NA1_(numbers)",  
 ]  
+
+So we have the list of match ID's now but there's no actual details of each match. What we can do is create a dictionary where each of the match ID's will be the key and the details for each match can be connected value:
+```python
+match_dict = {}
+# the link taken from Riot API website
+for match in match_list:
+    game_response = requests.get('https://americas.api.riotgames.com/tft/match/v1/matches/' + match,
+                                 headers=headers,
+                                 params=parameters)
+    game_details = game_response.json()
+    match_dict[match] = game_details
+```
