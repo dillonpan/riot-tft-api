@@ -225,7 +225,7 @@ trait_df['averages'] = trait_test.mean(axis=1)
 trait_df['count'] = trait_test.count(axis=1, numeric_only=True)
 print(trait_df[['averages', 'count']])
 
-trait_df.plot.bar(y='averages', rot=35, bottom=1)
+trait_df.plot.bar(y='averages', rot=25)
 matplotlib.pyplot.show()
 ```
 | |0|1|2|3|4|5|6|7|8|
@@ -250,3 +250,9 @@ matplotlib.pyplot.show()
 |Set2_Blademaster|2.000000|1|
 |Desert|6.000000|2|
 |Summoner|4.000000|1|
+
+![image](https://user-images.githubusercontent.com/57373723/69122043-a3cdf000-0a52-11ea-97df-66233f8a7133.png)
+
+From the looks of the end result, it looks like in general I place somewhere in the middle of most games. My best average placement was 2nd using Blademasters but I only prioritized that trait in my team composition once. The most succesful traits afterwards are tied between Alchemist and Poison. It seems our previous filtering logic was a bit off as there's only one unit in the game that holds the alchemist trait. It just so happens that the unit's other trait is poison. Thus it's possible I'm actually prioritizing that specific  unit for a poison team composition. I've used Alchemist and Poison both 3 times in the last 20 games and averaged 3rd place for both, which might not be a coincidence anymore.
+
+Despite them having the highest counts, it seems on average I usually end up placing in the bottom half when using Assasins & Mountain compositions. I should probably consider using other compositions over them.
