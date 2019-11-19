@@ -105,6 +105,7 @@ The retrieved data this time came back as a list of Match ID's. I've altered the
     "NA1_(numbers)",  
 ]  
 
+# Taking Match ID's to Pull Match Details
 So we have the list of match ID's now but there's no actual details of each match. What we can do is create a dictionary where each of the match ID's will be the key and the details for each match can be connected value:
 ```python
 match_dict = {}
@@ -116,3 +117,95 @@ for match in match_list:
     game_details = game_response.json()
     match_dict[match] = game_details
 ```
+The below is what was pulled as "game_details". It's a bunch of dictionaries and lists within other dictionaries and lists. It may seem a bit overwhelming at first but we can take it step by step:
+![image](https://user-images.githubusercontent.com/57373723/69102744-284f4d00-0a18-11ea-8b67-594a01f08b57.png)
+![image](https://user-images.githubusercontent.com/57373723/69102132-5fbcfa00-0a16-11ea-8200-669fc6ee102a.png)
+
+You can see that the return value is a MatchDto library but within it is InfoDto and MetadataDto, both being dictionaries with other lists/dictionaries within them. From looking over all the details in each match, it seems like we want the TraitDto's. Remember, in each match there are details of all 8 participants and we only want ours. The order to reach this seems to be MatchDto -> info -> participants -> our ParticipantDto -> traits. Seems simple, right?
+
+# Fetching our Trait Details from "game_details"
+Let's first create a dictionary to hold the traits. We can create it where the key will be each trait and their corresponding values can be a list of final placements in games. Remember, we have 20 matches to go through in match_dict so we should create a loop that can go through each of them. The next part if a bit complicated so I will break it down in sections then provide the full code at the end.
+
+```python
+trait_dict = {}
+```
+For the below snippet of code, we are going through the dictionaries and lists of each of the 20 matches. For each match, we're jumping in to the list of ParticipantDto's under "participants" in InfoDto. From there, we're going to loop through that list until we find the ParticipantDto with our unique PUUID:
+```Python
+# For each match in our match dict
+for match in match_dict:
+    # Go into the details to grab the list of participants
+    participants = match_dict[match]['info']['participants']
+    # Go through each participant to find yourself
+    for ParticipantDto in participants:
+        if ParticipantDto['puuid'] == puuid:
+```
+Here's a small visual that hopefully helps visualize the process of getting to our list of traits for each game:
+![image](https://user-images.githubusercontent.com/57373723/69104614-bed23d00-0a1d-11ea-81fd-49f6117743fa.png)
+
+We are now entering the list of TraitDto's for our PUUID (for one game). This is what is in each TraitDto:
+![image](https://user-images.githubusercontent.com/57373723/69104900-ac0c3800-0a1e-11ea-8ecc-18d103f3fe7c.png)
+
+Before we understand the snippet below, I need to explain a little more about traits in the game. Each character generally has 1 or 2 traits which link them to other units. With enough different units with the same trait are on the board, you get a "trait bonus". There's also various tiers for each trait type (Generally either 2,4,6 or 3,6). For example, I get a trait bonus if I have two glacial units but an even greater bonus if I can get four glacial units on the board at the same time. Your team composition is mainly based on units with similiar traits. There are times where you are going for the highest tier of one trait but you coincidentally end up also receiving the lowest bonus for another tier, because each unit generally has 2 traits connected to them.
+
+We only want the traits which we were actually focusing on for our team composition. But how can we seperate which traits we were focusing on from those that were an accident in each game? We can use the tier_total & tier_current sections of the details to help is create some filtering logic. Here's an example of what that section looks like:
+
+![image](https://user-images.githubusercontent.com/57373723/69105933-ae23c600-0a21-11ea-91be-e39286fc98f5.png)
+
+Let's set up the following logic. If our current_tier for that trait is 0, we obviously didn't build our team composition with that trait in mind. If the difference between the maximum possible tier for a trait and our current_tier is 2 levels or more, its most likely we acquired that current_tier bonus unintentionally. Thus, if we run in to these two situations, we won't do anything:
+```python
+            for trait in ParticipantDto['traits']:
+                if trait['tier_current'] == 0:
+                    pass
+                elif trait['tier_total'] - trait['tier_current'] >= 2:
+                    pass
+```
+
+If our trait does not fulfill the above rules, we can consider it a main trait that we did prioritize in our team composition. Thus, we can add it to our trait_dict. Again, we want a list of final placements as our value to each key(trait):
+```python
+                else:
+                    # if tier prioritized, we either append the game result to the list under that tier or create a new
+                    # list if trait didnt exist in the dictionary
+                    if trait['name'] in trait_dict:
+                        trait_dict[trait['name']].append(float(ParticipantDto['placement']))
+                    else:
+                        trait_dict[trait['name']] = [float(ParticipantDto['placement'])]
+```
+
+Combining the snippets in to a single block of code:
+```python
+for match in match_dict:
+    participants = match_dict[match]['info']['participants']
+    for ParticipantDto in participants:
+        if ParticipantDto['puuid'] == puuid:
+            for trait in ParticipantDto['traits']:
+                if trait['tier_current'] == 0:
+                    pass
+                elif trait['tier_total'] - trait['tier_current'] >= 2:
+                    pass
+                else:
+                    if trait['name'] in trait_dict:
+                        trait_dict[trait['name']].append(float(ParticipantDto['placement']))
+                    else:
+                        trait_dict[trait['name']] = [float(ParticipantDto['placement'])]
+```
+Let's print out an example of what the trait_dict may look like after running the above code:
+```python
+print(trait_dict)
+```
+{  
+'Set2_Assassin': [2.0, 2.0, 6.0, 4.0, 6.0, 5.0, 7.0, 6.0, 1.0],  
+'Avatar': [6.0, 3.0],  
+'Mountain': [6.0, 7.0, 2.0, 8.0, 6.0, 5.0],  
+'Wind': [6.0],  
+'Berserker': [7.0, 4.0, 1.0, 3.0],  
+'Alchemist': [4.0, 4.0, 1.0],  
+'Poison': [4.0, 4.0, 1.0],  
+'Set2_Glacial': [4.0, 5.0, 3.0],  
+'Druid': [2.0, 6.0],  
+'Mage': [2.0, 8.0, 5.0],  
+'Woodland': [2.0, 6.0],  
+'Set2_Blademaster': [2.0],  
+'Desert': [4.0, 8.0],  
+'Summoner': [4.0]  
+}
+
