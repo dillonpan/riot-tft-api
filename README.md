@@ -209,3 +209,44 @@ print(trait_dict)
 'Summoner': [4.0]  
 }
 
+Lastly, we can turn the dictionary in to a Pandas Dataframe and find the averages and counts for each trait:
+```python
+import pandas
+import matplotlib.pyplot
+import numpy
+
+# orient='index' is to change the dictionary keys to rows, one alternative to different sized column error
+trait_df = pandas.DataFrame.from_dict(trait_dict, orient='index')
+print(trait_df.head(2))
+
+# create copy to make average and count columns without including the other column
+trait_test = trait_df.copy()
+trait_df['averages'] = trait_test.mean(axis=1)
+trait_df['count'] = trait_test.count(axis=1, numeric_only=True)
+print(trait_df[['averages', 'count']])
+
+trait_df.plot.bar(y='averages', rot=35, bottom=1)
+matplotlib.pyplot.show()
+```
+| |0|1|2|3|4|5|6|7|8|
+|---|---|---|---|---|---|---|---|---|---|
+|Set2_Assassin|2.0|2.0|6.0|4.0|6.0|5.0|7.0|6.0|1.0|
+|Avatar|6.0|3.0|NaN|NaN|NaN|NaN|NaN|NaN|NaN|
+
+
+| |averages|count|
+|---|---|---|
+|Set2_Assassin|4.333333|9|
+|Avatar|4.500000|2|
+|Mountain|5.666667|6|
+|Wind|6.000000|1|
+|Berserker|3.750000|4|
+|Alchemist|3.000000|3|
+|Poison|3.000000|3|
+|Set2_Glacial|4.000000|3|
+|Druid|4.000000|2|
+|Mage|5.000000|3|
+|Woodland|4.000000|2|
+|Set2_Blademaster|2.000000|1|
+|Desert|6.000000|2|
+|Summoner|4.000000|1|
