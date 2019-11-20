@@ -4,12 +4,12 @@ Project using the package "reader" and Riot's API to retrieve and breakdown JSON
 # Project Details:
 In this project, we will use a few of Riot's public API and retrieve multiple JSON objects from it. Afterwards, we will breakdown the information we retrieve for our goal in this project. Before we explain our goal, here's a small summary from [Wikipedia](https://leagueoflegends.fandom.com/wiki/Teamfight_Tactics) on what TFT (Teamfight Tactics) is:
 
-"Assemble an army of your favorite champions in Teamfight Tactics, the PVP strategy autobattler from the makers of League of Legends.
+"Assemble an army of your favorite champions in Teamfight Tactics, the PVP strategy auto battler from the makers of League of Legends.
 In Teamfight Tactics, you’ll draft, deploy, and upgrade from a revolving roster of League of Legends champions in a round-based battle for survival. Devastate with demons, bruise with brawlers, or transform the battle with shapeshifters—the strategy is all up to you."
 
-The game is developed by Riot Games, hence why we will be using their API. Based on the last sentence of the wiki description above, we can see this strategy game includes various possible team traits (demons, brawlers, shapeshifters, etc). The game is an 8 player "last man standing" auto battler. I play this game quite a bit so I've always been curious to see which team traits have historically gotten me closer to 1st place. Let's create a small apllication to do just that.
+The game is developed by Riot Games, hence why we will be using their API. Based on the last sentence of the wiki description above, we can see this strategy game includes various possible team traits (demons, brawlers, shapeshifters, etc). The game is an 8 player "last man standing" auto battler. I play this game quite a bit, so I've always been curious to see which team traits have historically gotten me closer to 1st place. Let's create a small application to do just that.
 
-Note: This API requires an account with Riot and also an API access key that's generated from logging in to their [developer website](https://developer.riotgames.com/). To protect my account, I will substitute certain code with something more general. Specifically the following information (Consider both as "string" variables):
+Note: This API requires an account with Riot and an API access key that's generated from logging in to their [developer website](https://developer.riotgames.com/). To protect my account, I will substitute certain code with something more general. Specifically, the following information (Consider both as "string" variables):
 - (My own Riot "Summoners Name") -> (Summoner Name)
 - (My API access code) -> (api code)
 
@@ -19,7 +19,7 @@ Here's also the general steps we will be taking with Riot's API for better under
 3. Use each Match ID to pull details of the match to analyze and find our team trait for each game.
 
 # Using the Summoner's Name to Pull the PUUID:
-So the first thing we need to do is import the "requests" package and provide some information, specifically our generated API key and our Summoner's name (both being hidden for security):
+The first thing we need to do is import the "requests" package and provide some information, specifically our generated API key and our Summoner's name (both being hidden for security):
 
 ```python
 import requests
@@ -30,7 +30,7 @@ summoner_name = (Summoner Name)
 ```
 When calling a JSON object from an API we usually need a header and a parameter, both in the form of a dictionary. The information we need in both are usually provided by the API website. In this case, we need the following:
 ```python
-# neccesary headers- taken from Riot API website
+# necessary headers- taken from Riot API website
 headers = {
     "Origin": "https://developer.riotgames.com",
     "Accept-Charset": "application/x-www-form-urlencoded; charset=UTF-8",
@@ -39,11 +39,11 @@ headers = {
     "User-Agent": (personal-hidden)
 }
 
-# neccesary parameter - also taken from Riot API website
+# necessary parameter - also taken from Riot API website
 parameters = {"api_key": api_key}
 ```
 
-Now we can use the get() method under the requests package to retrieve and turn the JSON object in to a variable:
+Now we can use the get() method under the requests package to retrieve and turn the JSON object into a variable:
 ```python
 # the link taken from Riot API website
 sum_response = requests.get('https://na1.api.riotgames.com/tft/summoner/v1/summoners/by-name/' + summoner_name,
@@ -53,7 +53,7 @@ print(sum_response.status_code)
 summoner = sum_response.json()
 print(summoner)
 ```
-Everytime you send a requests, you receive a HTTP response code back. "200" means successful while other numbers would represent different errors. The information we successfully retrieved was in the form a dictionary. I've replaced the personal values retrieved with the type of that value you would receive.  
+Every time you send a request, you receive a HTTP response code back. "200" means successful while other numbers would represent different errors. The information we successfully retrieved was in the form a dictionary. I've replaced the personal values retrieved with the type of that value you would receive.  
 
 200  
 {  
@@ -106,7 +106,7 @@ The retrieved data this time came back as a list of Match ID's. I've altered the
 ]  
 
 # Taking Match ID's to Pull Match Details
-So we have the list of match ID's now but there's no actual details of each match. What we can do is create a dictionary where each of the match ID's will be the key and the details for each match can be connected value:
+We have the list of match ID's now but there's no actual details of each match. What we can do is create a dictionary where each of the match ID's will be the key and the details for each match can be connected value:
 ```python
 match_dict = {}
 # the link taken from Riot API website
@@ -117,7 +117,7 @@ for match in match_list:
     game_details = game_response.json()
     match_dict[match] = game_details
 ```
-The below is what was pulled as "game_details". It's a bunch of dictionaries and lists within other dictionaries and lists. It may seem a bit overwhelming at first but we can take it step by step:
+The below is what was pulled as "game_details". It's a bunch of dictionaries and lists within other dictionaries and lists. It may seem a bit overwhelming at first, but we can take it step by step:
 ![image](https://user-images.githubusercontent.com/57373723/69102744-284f4d00-0a18-11ea-8b67-594a01f08b57.png)
 ![image](https://user-images.githubusercontent.com/57373723/69102132-5fbcfa00-0a16-11ea-8200-669fc6ee102a.png)
 
@@ -129,7 +129,7 @@ Let's first create a dictionary to hold the traits. We can create it where the k
 ```python
 trait_dict = {}
 ```
-For the below snippet of code, we are going through the dictionaries and lists of each of the 20 matches. For each match, we're jumping in to the list of ParticipantDto's under "participants" in InfoDto. From there, we're going to loop through that list until we find the ParticipantDto with our unique PUUID:
+For the below snippet of code, we are going through the dictionaries and lists of each of the 20 matches. For each match, we're jumping into the list of ParticipantDto's under "participants" in InfoDto. From there, we're going to loop through that list until we find the ParticipantDto with our unique PUUID:
 ```Python
 # For each match in our match dict
 for match in match_dict:
@@ -145,9 +145,9 @@ Here's a small visual that hopefully helps visualize the process of getting to o
 We are now entering the list of TraitDto's for our PUUID (for one game). This is what is in each TraitDto:
 ![image](https://user-images.githubusercontent.com/57373723/69104900-ac0c3800-0a1e-11ea-8ecc-18d103f3fe7c.png)
 
-Before we understand the snippet below, I need to explain a little more about traits in the game. Each character generally has 1 or 2 traits which link them to other units. With enough different units with the same trait are on the board, you get a "trait bonus". There's also various tiers for each trait type (Generally either 2,4,6 or 3,6). For example, I get a trait bonus if I have two glacial units but an even greater bonus if I can get four glacial units on the board at the same time. Your team composition is mainly based on units with similiar traits. There are times where you are going for the highest tier of one trait but you coincidentally end up also receiving the lowest bonus for another tier, because each unit generally has 2 traits connected to them.
+Before we understand the snippet below, I need to explain a little more about traits in the game. Each character generally has 1 or 2 traits which link them to other units. With enough different units with the same trait are on the board, you get a "trait bonus". There are also various tiers for each trait type (Generally either 2,4,6 or 3,6). For example, I get a trait bonus if I have two glacial units but an even greater bonus if I can get four glacial units on the board at the same time. Your team composition is mainly based on units with similar traits. There are times where you are going for the highest tier of one trait, but you coincidentally end up also receiving the lowest bonus for another tier, because each unit generally has 2 traits connected to them.
 
-We only want the traits which we were actually focusing on for our team composition. But how can we seperate which traits we were focusing on from those that were an accident in each game? We can use the tier_total & tier_current sections of the details to help is create some filtering logic. Here's an example of what that section looks like:
+We only want the traits which we were actually focusing on for our team composition. But how can we separate which traits we were focusing on from those that were an accident in each game? We can use the tier_total & tier_current sections of the details to help is create some filtering logic. Here's an example of what that section looks like:
 
 ![image](https://user-images.githubusercontent.com/57373723/69105933-ae23c600-0a21-11ea-91be-e39286fc98f5.png)
 
@@ -164,14 +164,14 @@ If our trait does not fulfill the above rules, we can consider it a main trait t
 ```python
                 else:
                     # if tier prioritized, we either append the game result to the list under that tier or create a new
-                    # list if trait didnt exist in the dictionary
+                    # list if trait didn't exist in the dictionary
                     if trait['name'] in trait_dict:
                         trait_dict[trait['name']].append(float(ParticipantDto['placement']))
                     else:
                         trait_dict[trait['name']] = [float(ParticipantDto['placement'])]
 ```
 
-Combining the snippets in to a single block of code:
+Combining the snippets into a single block of code:
 ```python
 for match in match_dict:
     participants = match_dict[match]['info']['participants']
@@ -253,6 +253,6 @@ matplotlib.pyplot.show()
 
 ![image](https://user-images.githubusercontent.com/57373723/69122043-a3cdf000-0a52-11ea-97df-66233f8a7133.png)
 
-From the looks of the end result, it looks like in general I place somewhere in the middle of most games. My best average placement was 2nd using Blademasters but I only prioritized that trait in my team composition once. The most succesful traits afterwards are tied between Alchemist and Poison. It seems our previous filtering logic was a bit off as there's only one unit in the game that holds the alchemist trait. It just so happens that the unit's other trait is poison. Thus it's possible I'm actually prioritizing that specific  unit for a poison team composition. I've used Alchemist and Poison both 3 times in the last 20 games and averaged 3rd place for both, which might not be a coincidence anymore.
+From the looks of the end result, it looks like in general I place somewhere in the middle of most games. My best average placement was 2nd using Blademasters but I only prioritized that trait in my team composition once. The most successful traits afterwards are tied between Alchemist and Poison. It seems our previous filtering logic was a bit off as there's only one unit in the game that holds the alchemist trait. It just so happens that the unit's other trait is poison. Thus, it's possible I'm actually prioritizing that specific  unit for a poison team composition. I've used Alchemist and Poison both 3 times in the last 20 games and averaged 3rd place for both, which might not be a coincidence anymore.
 
-Despite them having the highest counts, it seems on average I usually end up placing in the bottom half when using Assasins & Mountain compositions. I should probably consider using other compositions over them.
+Despite them having the highest counts, it seems on average I usually end up placing in the bottom half when using Assassins & Mountain compositions. I should probably consider using other compositions over them.
